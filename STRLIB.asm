@@ -2,46 +2,6 @@
 .code
 
 LOCALS
-org 100h
-
-start:		call CLEAR_WINDOW
-
-		mov ax, ds
-		mov es, ax
-		
-		;push 82h
-
-		;push 'A'
-		;push 82h
-
-		;push 10
-		;push offset STR2
-		;push offset STR1
-
-		;push 13
-		;push offset STR2
-		;push offset STR1
-
-		;push 8
-		;push 82h
-		
-		push (5 * 80 + 40) * 2
-		push 16
-		push 2a4fh
-		
-		mov bx, 0b800h
-		mov es, bx
-		call itoa_st
-		
-		mov bx, 0b800h
-		mov es, bx
-
-		mov ah, 4eh
-		add ax, '0'
-		mov es:[(24 * 80) * 2], ax
-
-EXIT: 		mov ax, 4c00h
-		int 21h
 
 ;=================================== STRLEN ===================================
 ;------------------------------------------------------------------------------
@@ -84,7 +44,7 @@ strlen_st	proc
 					; ---------- END PROLOG ----------
 		
 		push di			; Save DI
-		mov di, [bp + 4]	; Load ARG1 to DI
+		mov di, cs:[bp + 4]	; Load ARG1 to DI
 		call strlen		; Call registers strlen
 		mov ax, cx		; Load strlen result to AX
 		pop di			; Load DI
@@ -148,8 +108,8 @@ strchr_st	proc
 					; ---------- END PROLOG ----------
 
 		push di			; Save DI
-		mov ah, [bp + 6]
-		mov di, [bp + 4]	; Prepare registers for strchr call
+		mov ah, cs:[bp + 6]
+		mov di, cs:[bp + 4]	; Prepare registers for strchr call
 		call strchr
 		pop di			; Load DI
 
@@ -171,8 +131,8 @@ strchr_st	proc
 ; Entry:  DI - addr to dest str
 ;	  SI - addr to src str
 ;	  CX - n
-; Note:   ES - segment start addr
-; 	  DS - segment start addr
+; Note:   ES - segment dest start addr
+; 	  DS - segment src  start addr
 ; Return: NONE
 ; Destr:  CX DI SI
 ;------------------------------------------------------------------------------
@@ -190,8 +150,8 @@ strncpy		proc
 ; Entry:  ARG1 - addr to dest str
 ;	  ARG2 - addr to src str
 ;	  ARG3 - n
-; Note:   ES - segment start addr
-; 	  DS - segment start addr
+; Note:   ES - segment dest start addr
+; 	  DS - segment src  start addr
 ; Return: NONE
 ; Destr:  CX
 ;------------------------------------------------------------------------------
@@ -417,10 +377,9 @@ itoa		proc
 		mov bx, offset DIGITS
 		add bx, dx		; Set BX to needed digit in DIGITS
 
-		mov bx, [bx]
-		mov es:[di+1], bl		; Set symbol in string
-		mov byte ptr es:[di], 4eh
-		add di, 2
+		mov bx, cs:[bx]
+		mov es:[di], bl		; Set symbol in string
+		inc di
 		
 		cmp ax, 0
 		jne @@body		; If number (AX) is zero finish func
@@ -452,9 +411,9 @@ itoa_st		proc
 
 		push di si		; Save DI and SI
 
-		mov ax, [bp + 4]
-		mov cx, [bp + 6]	; Prepare registers for itoa call
-		mov di, [bp + 8]
+		mov ax, cs:[bp + 4]
+		mov cx, cs:[bp + 6]	; Prepare registers for itoa call
+		mov di, cs:[bp + 8]
 		
 		call itoa
 		pop si di		; Load SI and DI
@@ -488,52 +447,25 @@ strrvs		proc
 		sub di, 2		; Set DI to last symbol
 
 		mov cx, 2
+		xor dx, dx
 		div cx			; Calc str len / 2
 
-@@body:		mov  cx, es:[si]
-		xchg cx, es:[di]	; Change 2 symbols by CL reg
-		mov  es:[si], cx
+		cmp ax, 0		; if ((len / 2) == 0) finish
+		jz @@end
 
-		add si, 2
-		sub di, 2			; Update SI, DI pointers
+@@body:		mov  cl, es:[si]
+		xchg cl, es:[di]	; Change 2 symbols by CL reg
+		mov  es:[si], cl
+
+		inc si
+		dec di			; Update SI, DI pointers
 		dec al			; Update sycle counter
 
 		jne @@body
 
-		ret
-		endp
-;------------------------------------------------------------------------------
-
-;------------------------------------------------------------------------------
-; Clear all window
-;
-; Entry: None
-; Exit:	 None
-; Destr: AL, CX, ES, SI
-;------------------------------------------------------------------------------
-CLEAR_WINDOW	proc
-		mov si, 0b800h
-		mov es, si
-		mov al, ' '
-		
-		mov si, 80
-@@body:		mov cx, 80
-		
-		cld
-		rep stosw
-
-		sub si, 1
-		cmp si, 0
-		jne @@body
-
-		ret
+@@end:		ret
 		endp
 ;------------------------------------------------------------------------------
 
 .data
 DIGITS		db '0123456789abcdef'
-
-STR1		db 'HELLO NIGGERS$'
-STR2		db 'BYE   NIGGERS$'
-
-end start
