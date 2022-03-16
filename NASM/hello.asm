@@ -4,7 +4,7 @@
 
 ; nasm -f elf64 -l 1-nasm.lst 1-nasm.s  ;  ld -s -o 1-nasm 1-nasm.o
 
-section .text
+section     .text
 
 global _start                  ; predefined entry point name for ld
 

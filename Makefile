@@ -1,5 +1,5 @@
 DIR  = NASM
-FILE = hello
+FILE = printf
 EXPN = asm
 
 OUT  = cat.purr
@@ -7,7 +7,7 @@ OUT  = cat.purr
 cr:
 	clear
 	
-	nasm $(DIR)/$(FILE).$(EXPN) -f elf64  -l $(DIR)/$(FILE).lst 
+	nasm $(DIR)/$(FILE).$(EXPN) -f elf64  -l $(DIR)/$(FILE).lst
 	ld   $(DIR)/$(FILE).o       -o $(OUT) -s
 
 	./$(OUT)
@@ -18,3 +18,7 @@ c:
 
 r:
 	./$(OUT)
+
+
+dbg:
+	edb --run $(OUT)
