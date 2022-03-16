@@ -14,7 +14,7 @@
 ;       %o      - print octal number
 ;       %x      - print hex number (lower case)
 ;       %X      - print hex number (upper case)
-;       %m      - print 'mrrr' phrase with random 'r' amount
+;       %m      - print some magic :)
 ;
 ;
 ; P.S.  I want to be a cat who will always sleep, and he will be loved,
@@ -488,7 +488,8 @@ murrrrrrr:
             call print_symbol
 
             mov  byte [NUMBER], 'r'     ; print 'r' RCX times
-.mr_sound:  call print_symbol
+    .mr_sound: 
+            call print_symbol
 
             dec  rax
             cmp  rax, 0
@@ -520,7 +521,7 @@ ERROR_END   db "'", STR_NEW, STR_END
 FORMAT1     db STR_NEW, "Hi '%s', it is my %d message! %s", STR_NEW, STR_NEW, STR_END
 FORMAT2     db STR_NEW, "%d(10) = %X(16) = %o(8) = %b(2)", STR_NEW, STR_NEW, STR_END
 FORMAT3     db STR_NEW, "%% %b %c %d %o %s %x %X", STR_NEW, STR_NEW, STR_END
-FORMAT4     db STR_NEW, "'%m'", STR_NEW, STR_NEW, STR_END
+FORMAT4     db STR_NEW, "'%%'", STR_NEW, STR_NEW, STR_END
 STRING1     db "IvanBrekman", STR_END
 STRING2     db "bye...", STR_END
 
