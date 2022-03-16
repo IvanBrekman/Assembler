@@ -77,7 +77,7 @@ global      _start
 _start:     
             ; FORMAT1
             push STRING2
-            push 1
+            push 13
             push STRING1
 
             mov  rsi, FORMAT1
@@ -357,6 +357,9 @@ itoa:       push rdi                ; Save RDI
             mov  byte [rdi], STR_END; Set STRING_END to result number
             dec  rdi
             shr  rcx, 1             ; len(string) / 2
+
+            cmp  rcx, 0             ; If (len(string) == 0)
+            je   .end               ;     no need to reverse so finish itoa
     
     .reverse:                       ; <-------------------------------------+
             mov al, [rdi]           ;                                       |
@@ -418,7 +421,7 @@ NUMBER      times 64 db "0"         ; Allocated memory for number string
 ERROR_STR   db STR_NEW, "Unknown specificator, got '%", STR_END
 ERROR_END   db "'", STR_NEW, STR_END
 
-FORMAT1     db STR_NEW, "Hi '%s', is my %d message! %s", STR_NEW, STR_NEW, STR_END
+FORMAT1     db STR_NEW, "Hi '%s', it is my %d message! %s", STR_NEW, STR_NEW, STR_END
 FORMAT2     db STR_NEW, "%d(10) = %x(16) = %o(8) = %b(2)", STR_NEW, STR_NEW, STR_END
 FORMAT3     db STR_NEW, " %b %c %d %o %s %x", STR_NEW, STR_NEW, STR_END
 STRING1     db "IvanBrekman", STR_END
