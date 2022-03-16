@@ -99,6 +99,12 @@ _start:
             call printf
 
             ; FORMAT3
+            push 15
+            push 33
+            push 100
+            push 3802
+            push STRING3
+
             push 0xff
             push 0xff
             push STRING1
@@ -419,13 +425,15 @@ itoa:       push rdi                ; Save RDI
 ;------------------------------------------------------------------------------
 ; Function generate random value from RBX to (RBX+RCX)
 ;
+; NOTE:   Random result is based on processor time and return values will be
+;         not so when calling this function in a loop
+;
 ; ENTRY:  RBX - start value
 ;         RCX - diaposon length
-;
 ; RETURN: RAX - random value
 ; DESTR:  RAX RDX
 ;------------------------------------------------------------------------------
-random:     rdtsc                       ; Get random value
+random:     rdtsc                       ; Get processor time
 
             xor  rdx, rdx               ; Clear RDX before DIV
             div  rcx
@@ -518,12 +526,13 @@ NUMBER      times 64 db "0"         ; Allocated memory for number string
 ERROR_STR   db STR_NEW, "Unknown specificator, got '%", STR_END
 ERROR_END   db "'", STR_NEW, STR_END
 
-FORMAT1     db STR_NEW, "Hi '%s', it is my %d message! %s", STR_NEW, STR_NEW, STR_END
+FORMAT1     db STR_NEW, "Hi '%n', it is my %d message! %s", STR_NEW, STR_NEW, STR_END
 FORMAT2     db STR_NEW, "%d(10) = %X(16) = %o(8) = %b(2)", STR_NEW, STR_NEW, STR_END
-FORMAT3     db STR_NEW, "%% %b %c %d %o %s %x %X", STR_NEW, STR_NEW, STR_END
-FORMAT4     db STR_NEW, "'%%'", STR_NEW, STR_NEW, STR_END
+FORMAT3     db STR_NEW, "%% %b %c %d %o %s %x %X, and I %s %X %d%%%c%b", STR_NEW, STR_NEW, STR_END
+FORMAT4     db STR_NEW, "'%m' %m %m %m %m %m %m", STR_NEW, STR_NEW, STR_END
 STRING1     db "IvanBrekman", STR_END
 STRING2     db "bye...", STR_END
+STRING3     db "love", STR_END
 
 ;####################### JUMP TABLE #######################
 JUMP_TABLE:
