@@ -1,6 +1,22 @@
 ;==============================================================================
 ; Printf lib                                                     (c) IvanBrekan
 ;                                                       Last update: 16.03.2022
+;
+; File contains logic for printf function which print string to STDOUT
+; replacing specificators
+;
+; Implemented specificators:
+;       %%      - print '%' symbol
+;       %c      - print char
+;       %s      - print string
+;       %d      - print decimal number
+;       %b      - print binary number
+;       %o      - print octal number
+;       %x      - print hex number
+;
+;
+; P.S.  I want to be a cat who will always sleep, and he will be loved,
+;       fed and petted, and not this is all..
 ;==============================================================================
 
 
@@ -29,23 +45,63 @@
 ;==============================================================================
 
 
+;=================================== MACRO ====================================
+;------------------------------------------------------------------------------
+; Macro print prefix to numbers
+;
+; NOTE:  Macro change first cell by NUMBER address
+;
+; ENTRY: prefix - prefix symbol
+; DESTR: NONE
+;------------------------------------------------------------------------------
+%macro PRINT_PREFIX 1
+            push rsi                    ; Save rsi
+            mov  rsi, NUMBER
+
+            mov  byte [NUMBER], '0'     ; print '0'
+            call print_symbol
+
+            mov  byte [NUMBER], %1      ; print prefix
+            call print_symbol
+
+            pop  rsi                    ; load rsi
+%endm
+;------------------------------------------------------------------------------
+;==============================================================================
+
+
 ;==================================== CODE ====================================
 section     .text
 
 global      _start
-_start:     ;push ARG3
-        ;    push '2'
-        ;    push ARG1;
+_start:     
+            ; FORMAT1
+            push STRING2
+            push 1
+            push STRING1
 
-        ;    mov  esi, FORMAT
-        ;    call printf
+            mov  rsi, FORMAT1
+            call printf
 
-            mov rax, 5
-            mov r10, 2
-            mov rdi, NUMBER
+            ; FORMAT2
+            push 0xff
+            push 0xff
+            push 0xff
+            push 0xff
 
-            call itoa
+            mov  rsi, FORMAT2
+            call printf
 
+            ; FORMAT3
+            push 0xff
+            push STRING1
+            push 0xff
+            push 0xff
+            push 'q'
+            push 0xff
+
+            mov  rsi, FORMAT3
+            call printf
 
 FINISH:     mov  rax, sys_EXIT
             xor  rdi, rdi
@@ -68,7 +124,7 @@ printf:     push rbp                    ; Save BP
             mov  rbp, rsp               ; Mov RBP to RSP
             add  rbp,2 *  REG_BYTES     ; Mov RBP to 1 ARG address
 
-            push rsi
+            push rsi                    ; Save RSI to calculate return value
 
     .process_symbol:                    ; <---------------------------------+
             cmp byte [rsi], STR_END     ; If ([rsi] == STR_END)             |
@@ -132,7 +188,7 @@ print_symbol:
 ;------------------------------------------------------------------------------
 ; Function print char to STDOUT
 ;
-; ENTRY:    NONE
+; ENTRY:    RBB  - char address
 ; RETURN:   NONE
 ; DESTR:    NONE
 ;------------------------------------------------------------------------------
@@ -150,23 +206,23 @@ print_char:
 ;------------------------------------------------------------------------------
 ; Function print string in STDOUT
 ;
-; ENTRY:    NONE
+; ENTRY:    [RBP] - string address
 ; RETURN:   NONE
 ; DESTR:    NONE
 ;------------------------------------------------------------------------------
 print_string:
-            push rsi
+            push rsi                    ; Save regs
 
             mov  rsi, [rbp]
 
-    .process_symbol:
-            cmp byte [rsi], STR_END     ; If ([rsi] == STR_END)             |
-            je  .end                    ;     finish printf                 |
-
-            call print_symbol
-            inc  rsi
-
-            jmp  .process_symbol
+    .process_symbol:                    ; <---------------------+
+            cmp byte [rsi], STR_END     ; If ([rsi] == STR_END) |
+            je  .end                    ;     finish printf     |
+                                        ;                       |
+            call print_symbol           ;                       |
+            inc  rsi                    ;                       |
+                                        ;                       |
+            jmp  .process_symbol        ; print string ---------+
             
     .end:
             pop  rsi                    ; Load regs
@@ -174,68 +230,99 @@ print_string:
 ;------------------------------------------------------------------------------
 
 ;------------------------------------------------------------------------------
-; Function print 1 symbol to STDOUT
+; Function print binary number
 ;
-; NOTE:     Function increase RBP to next printf argument
-;
-; ENTRY:    RSI - symbol address
+; ENTRY:    [RBP] - number
 ; RETURN:   NONE
 ; DESTR:    NONE
 ;------------------------------------------------------------------------------
 print_number_bin:
+            PRINT_PREFIX 'b'
+            mov  r10, 2
+
+            call print_number
+
             ret
 ;------------------------------------------------------------------------------
 
 ;------------------------------------------------------------------------------
-; Function print 1 symbol to STDOUT
+; Function print octal number
 ;
-; NOTE:     Function increase RBP to next printf argument
-;
-; ENTRY:    RSI - symbol address
+; ENTRY:    [RBP] - number
 ; RETURN:   NONE
 ; DESTR:    NONE
 ;------------------------------------------------------------------------------
 print_number_oct:
+            PRINT_PREFIX ''
+            mov  r10, 8
+
+            call print_number
+
             ret
 ;------------------------------------------------------------------------------
 
 ;------------------------------------------------------------------------------
-; Function print 1 symbol to STDOUT
+; Function print decimal number
 ;
-; NOTE:     Function increase RBP to next printf argument
-;
-; ENTRY:    RSI - symbol address
+; ENTRY:    [RBP] - number
 ; RETURN:   NONE
 ; DESTR:    NONE
 ;------------------------------------------------------------------------------
 print_number_dec:
+            mov  r10, 10
+
+            call print_number
+
             ret
 ;------------------------------------------------------------------------------
 
 ;------------------------------------------------------------------------------
-; Function print 1 symbol to STDOUT
+; Function print hex number
 ;
-; NOTE:     Function increase RBP to next printf argument
-;
-; ENTRY:    RSI - symbol address
+; ENTRY:    [RBP] - number
 ; RETURN:   NONE
 ; DESTR:    NONE
 ;------------------------------------------------------------------------------
 print_number_hex:
+            PRINT_PREFIX 'x'
+            mov  r10, 16
+
+            call print_number
+
             ret
 ;------------------------------------------------------------------------------
 
+;------------------------------------------------------------------------------
+; Function print number in required radix
+;
+; ENTRY:    [RBP] - number
+;           R10   - radix
+; RETURN:   NONE
+; DESTR:    NONE
+;------------------------------------------------------------------------------
 print_number:
-            mov  rax, [rbp]
-            pop  r10
-            mov  rdi, NUMBER
+            push rax                ; <---------------------+
+            push rbx                ;                       |
+            push rcx                ; Save regs             |
+            push rdx                ;                       |
+            push rsi                ; <---------------------+
+
+            mov  qword rax, [rbp]
+            mov  rdi, NUMBER        ; Prepare regs for ito call
 
             call itoa
 
-            mov  [rbp], NUMBER
-            call print_string
+            mov  qword [rbp], NUMBER
+            call print_string       ; Print number to STDOUT
+
+            pop  rsi                ; <---------------------+
+            pop  rdx                ;                       |
+            pop  rcx                ; Load regs             |
+            pop  rbx                ;                       |
+            pop  rax                ; <---------------------+
 
             ret
+;------------------------------------------------------------------------------
 
 ;------------------------------------------------------------------------------
 ; Function convert integer to string
@@ -246,42 +333,42 @@ print_number:
 ; RETURN:   NONE
 ; DESTR:    RAX RBX RCX RDX RSI
 ;------------------------------------------------------------------------------
-itoa:       push rdi
-            mov  rsi, rdi
-            xor  rcx, rcx
+itoa:       push rdi                ; Save RDI
+            mov  rsi, rdi           ; Save string start
+            xor  rcx, rcx           ; Set RCX counter = 0
 
-    .process_digit:
-            xor  rdx, rdx
-            div  r10
+    .process_digit:                 ; <-------------------------------------+
+            xor  rdx, rdx           ; Clear RDX to correct DIV              |
+            div  r10                ; DIV on radix                          |
+                                    ;                                       |
+            mov  rbx, DIGITS_LOW    ;                                       |
+            add  rbx, rdx           ; Set RBX to needed digit in DIGITS     |
+                                    ;                                       |
+            push rax                ; Save number value (RAX)               |
+            mov  al, [rbx]          ;                                       |
+            stosb                   ; Print digit                           |
+            pop  rax                ; Load number value (RAX)               |
+                                    ;                                       |
+            inc  rcx                ; Update counter                        |
+                                    ;                                       |
+            cmp  rax, 0             ;                                       |
+            jne  .process_digit     ; repeat... ----------------------------+
 
-            mov  rbx, DIGITS_LOW
-            add  rbx, rdx
-
-            push rax
-            mov  al, [rbx]
-            stosb
-            pop  rax
-
-            inc  rcx
-
-            cmp  rax, 0
-            jne  .process_digit
-
-            mov  byte [rdi], 0
+            mov  byte [rdi], STR_END; Set STRING_END to result number
             dec  rdi
-            shr  rcx, 1
+            shr  rcx, 1             ; len(string) / 2
     
-    .reverse:
-            mov al, [rdi]
-            xchg al, [rsi]
-            mov [rdi], al
-
-            inc rsi
-            dec rdi
-            loop .reverse
+    .reverse:                       ; <-------------------------------------+
+            mov al, [rdi]           ;                                       |
+            xchg al, [rsi]          ; Swap symbols                          |
+            mov [rdi], al           ;                                       |
+                                    ;                                       |
+            inc rsi                 ; Update ptrs                           |
+            dec rdi                 ;                                       |
+            loop .reverse           ; reverse string -----------------------+
 
     .end:
-            pop rdi
+            pop rdi                 ; Load RDI
             ret
 ;------------------------------------------------------------------------------
 
@@ -294,21 +381,21 @@ itoa:       push rdi
 ;------------------------------------------------------------------------------
 roarrrrrrr:
             mov  qword [rbp], ERROR_STR
-            call print_string
+            call print_string       ; Print error start msg
 
-            call print_symbol
+            call print_symbol       ; Print unknown specificator
 
             mov  qword [rbp], ERROR_END
-            call print_string
+            call print_string       ; Print error end msg
 
             mov  rdi, _UNKNOW_SPECIFICATOR
-            jmp  ABORT
+            jmp  ABORT              ; Set exit_code and ABORT from program
 
             ret
 ;------------------------------------------------------------------------------
 
 ;------------------------------------------------------------------------------
-; Function doing nothing
+; Function doing nothing (just purrrrrrring :))
 ;
 ; ENTRY:    NONE
 ; RETURN:   NONE
@@ -324,16 +411,18 @@ section     .data
 
 DIGITS_LOW  db "0123456789abcdef"
 DIGITS_UPP  db "0123456789ABCDEF"
-NUMBER      times 64 db "0"
+NUMBER      times 64 db "0"         ; Allocated memory for number string
             db 0
 
+; Unknown specificator message
 ERROR_STR   db STR_NEW, "Unknown specificator, got '%", STR_END
 ERROR_END   db "'", STR_NEW, STR_END
 
-FORMAT      db STR_NEW, "Hi %n '%s', is my %c message! %s", STR_NEW, STR_NEW, STR_END
-ARG1        db "IvanBrekman", STR_END
-ARG2        db '1'
-ARG3        db "bye...", STR_END
+FORMAT1     db STR_NEW, "Hi '%s', is my %d message! %s", STR_NEW, STR_NEW, STR_END
+FORMAT2     db STR_NEW, "%d(10) = %x(16) = %o(8) = %b(2)", STR_NEW, STR_NEW, STR_END
+FORMAT3     db STR_NEW, " %b %c %d %o %s %x", STR_NEW, STR_NEW, STR_END
+STRING1     db "IvanBrekman", STR_END
+STRING2     db "bye...", STR_END
 
 ;####################### JUMP TABLE #######################
 JUMP_TABLE:
@@ -344,9 +433,9 @@ times       CODE_B - CODE_P - 1     dq roarrrrrrr
 times       CODE_C - CODE_B - 1     dq roarrrrrrr
                                     dq print_char
 times       CODE_D - CODE_C - 1     dq roarrrrrrr
-                                    dq print_number_oct
+                                    dq print_number_dec
 times       CODE_O - CODE_D - 1     dq roarrrrrrr
-                                    dq print_number_bin
+                                    dq print_number_oct
 times       CODE_S - CODE_O - 1     dq roarrrrrrr
                                     dq print_string
 times       CODE_X - CODE_S - 1     dq roarrrrrrr
