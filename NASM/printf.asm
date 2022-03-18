@@ -23,29 +23,29 @@
 
 
 ;================================= CONSTANTS ==================================
-%define     CODE_P      '%'         ; <---------------------+
+%define     CODE_P      '%'             ; <---------------------+
 %define     CODE_B      'b'
 %define     CODE_C      'c'
-%define     CODE_D      'd'         ; printf specificators  |
+%define     CODE_D      'd'             ; printf specificators  |
 %define     CODE_O      'o'
 %define     CODE_S      's'
 %define     CODE_X      'x'
 %define     CODE_XX     'X'
-%define     CODE_M      'm'         ; <---------------------+
+%define     CODE_M      'm'             ; <---------------------+
 
-%define     STR_END     0x00        ; '\0'
-%define     STR_NEW     0x0A        ; '\n'
-%define     MIN_MUR     3           ; Min 'r' symbols in 'mrrr' phrase
-%define     MAX_MUR     20          ; Max 'r' symbols in 'mrrr' phrase
+%define     STR_END     0x00            ; '\0'
+%define     STR_NEW     0x0A            ; '\n'
+%define     MIN_MUR     3               ; Min 'r' symbols in 'mrrr' phrase
+%define     MAX_MUR     20              ; Max 'r' symbols in 'mrrr' phrase
 
-%define     REG_BYTES   8           ; max size of reg (in bytes)
+%define     REG_BYTES   8               ; max size of reg (in bytes)
 
-%define     STDIN       0           ; <---------------------+
-%define     STDOUT      1           ; files destcriptors    |
-%define     STDERR      2           ; <---------------------+
+%define     STDIN       0               ; <---------------------+
+%define     STDOUT      1               ; files destcriptors    |
+%define     STDERR      2               ; <---------------------+
 
-%define     sys_WRITE   0x01        ; system write func
-%define     sys_EXIT    0x3C        ; system exit  func
+%define     sys_WRITE   0x01            ; system write func
+%define     sys_EXIT    0x3C            ; system exit  func
 
 %define     _UNKNOW_SPECIFICATOR    0x0BAD
 ;==============================================================================
@@ -184,19 +184,19 @@ printf:     push rbp                    ; Save BP
 ; DESTR:    NONE
 ;------------------------------------------------------------------------------
 print_symbol:
-            push rax                ; <---------------------+
-            push rdi                ; Save regs             |
-            push rdx                ; <---------------------+
+            push rax                    ; <---------------------+
+            push rdi                    ; Save regs             |
+            push rdx                    ; <---------------------+
             
-            mov rax, sys_WRITE      ; Prepare regs to 
-            mov rdi, STDOUT         ; sys write call
-            mov rdx, 1  
+            mov rax, sys_WRITE          ; Prepare regs to 
+            mov rdi, STDOUT             ; sys write call
+            mov rdx, 1
 
-            syscall                 ; write call
+            syscall                     ; write call
             
-            pop  rdx                ; <---------------------+
-            pop  rdi                ; Load regs             |
-            pop  rax                ; <---------------------+
+            pop  rdx                    ; <---------------------+
+            pop  rdi                    ; Load regs             |
+            pop  rax                    ; <---------------------+
 
             ret
 ;------------------------------------------------------------------------------
@@ -346,26 +346,26 @@ print_number_hex_upp:
 ; DESTR:    NONE
 ;------------------------------------------------------------------------------
 print_number:
-            push rax                ; <---------------------+
-            push rbx                ;                       |
-            push rcx                ; Save regs             |
-            push rdx                ;                       |
-            push rsi                ; <---------------------+
+            push rax                    ; <---------------------+
+            push rbx                    ;                       |
+            push rcx                    ; Save regs             |
+            push rdx                    ;                       |
+            push rsi                    ; <---------------------+
 
             mov  qword rax, [rbp]
-            mov  rdi, NUMBER        ; Prepare regs for ito call
+            mov  rdi, NUMBER            ; Prepare regs for ito call
 
             call itoa
 
             mov  qword [rbp], NUMBER
-            call print_string       ; Print number to STDOUT
-            sub  rbp, REG_BYTES     ; Balance RBP
+            call print_string           ; Print number to STDOUT
+            sub  rbp, REG_BYTES         ; Balance RBP
 
-            pop  rsi                ; <---------------------+
-            pop  rdx                ;                       |
-            pop  rcx                ; Load regs             |
-            pop  rbx                ;                       |
-            pop  rax                ; <---------------------+
+            pop  rsi                    ; <---------------------+
+            pop  rdx                    ;                       |
+            pop  rcx                    ; Load regs             |
+            pop  rbx                    ;                       |
+            pop  rax                    ; <---------------------+
 
             ret
 ;------------------------------------------------------------------------------
@@ -380,45 +380,45 @@ print_number:
 ; RETURN:   NONE
 ; DESTR:    RAX RBX RCX RDX RSI
 ;------------------------------------------------------------------------------
-itoa:       push rdi                ; Save RDI
-            mov  rsi, rdi           ; Save string start
-            xor  rcx, rcx           ; Set RCX counter = 0
+itoa:       push rdi                    ; Save RDI
+            mov  rsi, rdi               ; Save string start
+            xor  rcx, rcx               ; Set RCX counter = 0
 
-    .process_digit:                 ; <-------------------------------------+
-            xor  rdx, rdx           ; Clear RDX to correct DIV              |
-            div  r10                ; DIV on radix                          |
-                                    ;                                       |
-            mov  rbx, r8    ;                                       |
-            add  rbx, rdx           ; Set RBX to needed digit in DIGITS     |
-                                    ;                                       |
-            push rax                ; Save number value (RAX)               |
-            mov  al, [rbx]          ;                                       |
-            stosb                   ; Print digit                           |
-            pop  rax                ; Load number value (RAX)               |
-                                    ;                                       |
-            inc  rcx                ; Update counter                        |
-                                    ;                                       |
-            cmp  rax, 0             ;                                       |
-            jne  .process_digit     ; repeat... ----------------------------+
+    .process_digit:                     ; <---------------------------------+
+            xor  rdx, rdx               ; Clear RDX to correct DIV          |
+            div  r10                    ; DIV on radix                      |
+                                        ;                                   |
+            mov  rbx, r8                ;                                   |
+            add  rbx, rdx               ; Set RBX to needed digit in DIGITS |
+                                        ;                                   |
+            push rax                    ; Save number value (RAX)           |
+            mov  al, [rbx]              ;                                   |
+            stosb                       ; Print digit                       |
+            pop  rax                    ; Load number value (RAX)           |
+                                        ;                                   |
+            inc  rcx                    ; Update counter                    |
+                                        ;                                   |
+            cmp  rax, 0                 ;                                   |
+            jne  .process_digit         ; repeat... ------------------------+
 
-            mov  byte [rdi], STR_END; Set STRING_END to result number
+            mov  byte [rdi], STR_END    ; Set STRING_END to result number
             dec  rdi
-            shr  rcx, 1             ; len(string) / 2
+            shr  rcx, 1                 ; len(string) / 2
 
-            cmp  rcx, 0             ; If (len(string) == 0)
-            je   .end               ;     no need to reverse so finish itoa
+            cmp  rcx, 0                 ; If (len(string) == 0)
+            je   .end                   ;     no need to reverse so finish itoa
     
-    .reverse:                       ; <-------------------------------------+
-            mov al, [rdi]           ;                                       |
-            xchg al, [rsi]          ; Swap symbols                          |
-            mov [rdi], al           ;                                       |
-                                    ;                                       |
-            inc rsi                 ; Update ptrs                           |
-            dec rdi                 ;                                       |
-            loop .reverse           ; reverse string -----------------------+
+    .reverse:                           ; <---------------------------------+
+            mov al, [rdi]               ;                                   |
+            xchg al, [rsi]              ; Swap symbols                      |
+            mov [rdi], al               ;                                   |
+                                        ;                                   |
+            inc rsi                     ; Update ptrs                       |
+            dec rdi                     ;                                   |
+            loop .reverse               ; reverse string -------------------+
 
     .end:
-            pop rdi                 ; Load RDI
+            pop rdi                     ; Load RDI
             ret
 ;------------------------------------------------------------------------------
 
@@ -453,15 +453,15 @@ random:     rdtsc                       ; Get processor time
 ;------------------------------------------------------------------------------
 roarrrrrrr:
             mov  qword [rbp], ERROR_STR
-            call print_string       ; Print error start msg
+            call print_string           ; Print error start msg
 
-            call print_symbol       ; Print unknown specificator
+            call print_symbol           ; Print unknown specificator
 
             mov  qword [rbp], ERROR_END
-            call print_string       ; Print error end msg
+            call print_string           ; Print error end msg
 
             mov  rdi, _UNKNOW_SPECIFICATOR
-            jmp  ABORT              ; Set exit_code and ABORT from program
+            jmp  ABORT                  ; Set exit_code and ABORT from program
 
             ret
 ;------------------------------------------------------------------------------
@@ -526,7 +526,7 @@ NUMBER      times 64 db "0"         ; Allocated memory for number string
 ERROR_STR   db STR_NEW, "Unknown specificator, got '%", STR_END
 ERROR_END   db "'", STR_NEW, STR_END
 
-FORMAT1     db STR_NEW, "Hi '%n', it is my %d message! %s", STR_NEW, STR_NEW, STR_END
+FORMAT1     db STR_NEW, "Hi '%s', it is my %d message! %s", STR_NEW, STR_NEW, STR_END
 FORMAT2     db STR_NEW, "%d(10) = %X(16) = %o(8) = %b(2)", STR_NEW, STR_NEW, STR_END
 FORMAT3     db STR_NEW, "%% %b %c %d %o %s %x %X, and I %s %X %d%%%c%b", STR_NEW, STR_NEW, STR_END
 FORMAT4     db STR_NEW, "'%m' %m %m %m %m %m %m", STR_NEW, STR_NEW, STR_END
